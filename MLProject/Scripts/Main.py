@@ -2,6 +2,7 @@ import pandas as pd
 import joblib
 import numpy as np
 from DataSplitter import DataPreprocessorAndSplitter
+from imblearn.under_sampling import RandomUnderSampler
 
 df = pd.read_csv("all_conditions.csv")
 
@@ -26,12 +27,22 @@ splitter = DataPreprocessorAndSplitter(
 )
 
 splits = splitter.stratified_split()
-(X_train, y_train), (X_val, y_val), (X_test, y_test) = \
-    splitter.splits['train'], splitter.splits['val'], splitter.splits['test']
+(X_train, y_train), (X_val, y_val), (X_test, y_test) = splitter.splits['train'], splitter.splits['val'], splitter.splits['test']
 
-# Save as .npy for fast reloading
-np.save('data/X_train.npy', X_train)
-np.save('data/y_train.npy', y_train)
+# Apply undersampling to training set only
+undersample = RandomUnderSampler(random_state=42)
+X_train_resampled, y_train_resampled = undersample.fit_resample(X_train, y_train)
+
+# Optional: Print to verify
+import numpy as np
+print("Original train distribution:", np.bincount(y_train))
+print("Resampled train distribution:", np.bincount(y_train_resampled))
+
+# Save the new resampled balanced training data
+np.save('data/X_train.npy', X_train_resampled)
+np.save('data/y_train.npy', y_train_resampled)
+
+# Save val/test normally
 np.save('data/X_val.npy', X_val)
 np.save('data/y_val.npy', y_val)
 np.save('data/X_test.npy', X_test)
