@@ -211,6 +211,6 @@ print(f"Model Accuracy: {accuracy:.2f}")
 
 # Save the trained model to a file using joblib
 # Replace 'manual_decision_tree_model.joblib' with your desired file name
-model_filename = 'manual_decision_tree_model.joblib'
+model_filename = 'models/manual_decision_tree_model.joblib'
 joblib.dump(clf, model_filename)
 print(f"Model saved successfully to {model_filename}.")

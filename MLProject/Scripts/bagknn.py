@@ -118,7 +118,7 @@ def predict_bagging_knn(estimators, X_test):
     print("Aggregation complete.")
     return np.array(final_predictions)
 
-def save_model(model, filename="bagging_knn_model.joblib"):
+def save_model(model, filename="models/bagging_knn_model.joblib"):
     """
     Saves the trained model (list of estimators) to a file using joblib.
 
@@ -141,7 +141,7 @@ def main():
     N_ESTIMATORS = 20  # Number of KNN models in the ensemble
     N_NEIGHBORS = 7    # K value for each KNN
     MAX_SAMPLES_RATIO = 0.8 # Use 80% of the data for each bootstrap sample
-    MODEL_FILENAME = "bagging_knn_model.joblib" # File to save the trained model
+    MODEL_FILENAME = "models/bagging_knn_model.joblib" # File to save the trained model
 
     # --- Load Data ---
     X_train, y_train, X_test, y_test = load_data(DATA_DIR)

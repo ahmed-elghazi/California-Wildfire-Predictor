@@ -79,7 +79,7 @@ class BaggingDecisionTree:
 if __name__ == "__main__":
     # Define data directory relative to the script location
     DATA_DIR = 'data'
-    MODEL_FILENAME = 'bagging_tree_model.joblib'
+    MODEL_FILENAME = 'models/bagging_tree_model.joblib'
 
     # 1. Load Data
     print("Loading data...")

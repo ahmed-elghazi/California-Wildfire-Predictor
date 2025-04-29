@@ -128,7 +128,7 @@ def main():
     print(f"Test Accuracy: {accuracy:.2f}")
 
     # Save the trained model
-    model_path = os.path.join('data', 'Adaboost_model.joblib')
+    model_path = os.path.join('models', 'Adaboost_model.joblib')
     save_model(models, alphas, model_path)
 
 

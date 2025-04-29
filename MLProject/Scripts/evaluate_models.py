@@ -13,12 +13,18 @@ y_val = np.load('data/y_val.npy')
 
 # List of models and their file paths
 model_files = {
-    "Feedforward Neural Net (FFN)": "Models/saved_model_ffn.joblib",
-    "Support Vector Machine (SVM)": "Models/saved_model_svm.joblib",
-    "Logistic Regression": "Models/saved_model_logistic.joblib",
-    "Perceptron": "Models/saved_model_perceptron.joblib",
-    "Boosted Logistic Regression": "Models/saved_model_boost_logistic.joblib",
-    "Boosted Perceptron": "Models/saved_model_boost_perceptron.joblib",
+    # "Feedforward Neural Net (FFN)": "Models/saved_model_ffn.joblib",
+    # "Support Vector Machine (SVM)": "Models/saved_model_svm.joblib",
+    # "Logistic Regression": "Models/saved_model_logistic.joblib",
+    # "Perceptron": "Models/saved_model_perceptron.joblib",
+    # "Boosted Logistic Regression": "Models/saved_model_boost_logistic.joblib",
+    # "Boosted Perceptron": "Models/saved_model_boost_perceptron.joblib",
+    "adaboost": "models/Adaboost_model.joblib",
+    "bagged trees": "models/bagging_tree_model.joblib",
+    "normal tree": "models/manual_decision_tree_model.joblib",
+    "KNN": "models/manual_knn_model.joblib",
+    "bagged knn": "models/bagging_knn_model.joblib",
+
 }
 
 

@@ -1,139 +1,205 @@
-"""
-Module: knn_module.py
-Provides KNNClassifier and BaggingKNN classes for use by a main script.
-"""
 import numpy as np
-
-import pandas as pd
+import os
 from collections import Counter
-from sklearn.model_selection import train_test_split
+import math
+import joblib # Added import
 
-class KNNClassifier:
+# ... (Keep existing functions: euclidean_distance, get_neighbors, predict_classification, calculate_accuracy, load_data) ...
+def euclidean_distance(point1, point2):
     """
-    K-Nearest Neighbors classifier.
+    Calculates the Euclidean distance between two points (vectors).
+
+    Args:
+        point1 (np.ndarray): The first point.
+        point2 (np.ndarray): The second point.
+
+    Returns:
+        float: The Euclidean distance between the two points.
     """
-    def __init__(self, k=5):
-        self.k = k
-        self.X_train = None
-        self.y_train = None
+    # Ensure points are numpy arrays for vectorized operations
+    point1 = np.asarray(point1)
+    point2 = np.asarray(point2)
+    # Calculate the sum of squared differences between coordinates
+    sum_sq_diff = np.sum((point1 - point2)**2)
+    # Return the square root of the sum
+    return math.sqrt(sum_sq_diff)
 
-    def fit(self, X, y):
-        """Store training data."""
-        self.X_train = np.array(X)
-        self.y_train = np.array(y, dtype=int)
-
-    def predict(self, X):
-        """Predict labels for each row in X."""
-        X = np.array(X)
-        preds = [self._predict_point(x) for x in X]
-        return np.array(preds, dtype=int)
-
-    def _predict_point(self, x):
-        # Compute Euclidean distances
-        dists = np.linalg.norm(self.X_train - x, axis=1)
-        # Indices of k smallest distances
-        idx = np.argsort(dists)[:self.k]
-        # Majority vote
-        vote = Counter(self.y_train[idx]).most_common(1)[0][0]
-        return vote
-
-class BaggingKNN:
+def get_neighbors(X_train, y_train, test_instance, k):
     """
-    Bagged ensemble of KNN classifiers.
+    Finds the k nearest neighbors for a given test instance.
+
+    Args:
+        X_train (np.ndarray): Training data features.
+        y_train (np.ndarray): Training data labels.
+        test_instance (np.ndarray): The data point for which to find neighbors.
+        k (int): The number of nearest neighbors to find.
+
+    Returns:
+        list: A list of labels of the k nearest neighbors.
     """
-    def __init__(self, k=5, n_estimators=10, sample_fraction=1.0, random_state=None):
-        self.k = k
-        self.n_estimators = n_estimators
-        self.sample_fraction = sample_fraction
-        self.random_state = random_state
-        self.models = []
+    distances = []
+    # Calculate distance from the test instance to all training points
+    for i in range(len(X_train)):
+        dist = euclidean_distance(test_instance, X_train[i])
+        # Store the distance and the corresponding label
+        distances.append((dist, y_train[i]))
 
-    def fit(self, X, y):
-        """
-        Fit an ensemble of KNNs on bootstrap samples of (X, y).
-        """
-        np.random.seed(self.random_state)
-        X = np.array(X)
-        y = np.array(y, dtype=int)
-        n_samples = X.shape[0]
-        sample_size = int(self.sample_fraction * n_samples)
-        self.models = []
-        for _ in range(self.n_estimators):
-            inds = np.random.choice(n_samples, size=sample_size, replace=True)
-            knn = KNNClassifier(k=self.k)
-            knn.fit(X[inds], y[inds])
-            self.models.append(knn)
+    # Sort distances in ascending order
+    distances.sort(key=lambda x: x[0])
 
-    def predict(self, X):
-        """
-        Predict labels by majority vote across ensemble.
-        """
-        X = np.array(X)
-        # Collect predictions from each estimator
-        all_preds = np.array([m.predict(X) for m in self.models])  # shape = (n_estimators, n_samples)
-        # Transpose to iterate samples
-        final = []
-        for preds in all_preds.T:
-            vote = Counter(preds).most_common(1)[0][0]
-            final.append(vote)
-        return np.array(final, dtype=int)
-    
+    # Get the labels of the top k neighbors
+    neighbors = [distances[i][1] for i in range(k)]
+    return neighbors
 
-def load_and_clean(path):
+def predict_classification(X_train, y_train, test_instance, k):
     """
-    1) Read CSV into a DataFrame.
-    2) Drop rows with any NaNs.
-    3) Keep only numeric columns (drops station names, regions, dates, etc.).
-    4) Split into X (features) and y (label).
+    Predicts the class label for a test instance using KNN.
+
+    Args:
+        X_train (np.ndarray): Training data features.
+        y_train (np.ndarray): Training data labels.
+        test_instance (np.ndarray): The data point to classify.
+        k (int): The number of nearest neighbors to consider.
+
+    Returns:
+        The predicted class label.
     """
-    df = pd.read_csv(path)
+    # Get the labels of the k nearest neighbors
+    neighbors = get_neighbors(X_train, y_train, test_instance, k)
+    # Count the occurrences of each label among the neighbors
+    output_values = [row for row in neighbors]
+    # Find the most common class label
+    prediction = Counter(output_values).most_common(1)[0][0]
+    return prediction
 
-    # Drop rows with missing values
-    missing_mask = df.isnull().any(axis=1)
-    total_missing = missing_mask.sum()
-    total_rows = len(df)
-    print(f"Dropped {total_missing} rows with missing values ({total_rows} -> {total_rows - total_missing}).")
-    df = df.dropna(axis=0)
-
-    # Keep only numeric columns
-    df_numeric = df.select_dtypes(include=[np.number])
-
-    # The last numeric column is assumed to be the label
-    X = df_numeric.iloc[:, :-1].to_numpy()
-    y = df_numeric.iloc[:, -1].astype(int).to_numpy()
-
-    return X, y
-
-
-def split_data(X, y, test_size=0.20, random_state=42):
+def calculate_accuracy(y_true, y_pred):
     """
-    Stratified train/test split preserving class ratios.
+    Calculates the accuracy of predictions.
+
+    Args:
+        y_true (np.ndarray): The true labels.
+        y_pred (list): The predicted labels.
+
+    Returns:
+        float: The accuracy score.
     """
-    return train_test_split(
-        X, y,
-        test_size=test_size,
-        stratify=y,
-        random_state=random_state
-    )
+    correct_count = 0
+    # Compare true labels with predicted labels
+    for i in range(len(y_true)):
+        if y_true[i] == y_pred[i]:
+            correct_count += 1
+    # Calculate accuracy as the fraction of correct predictions
+    return correct_count / float(len(y_true))
+
+def load_data(data_dir):
+    """
+    Loads training and testing data from .npy files in the specified directory.
+
+    Args:
+        data_dir (str): The directory containing the data files.
+
+    Returns:
+        tuple: A tuple containing X_train, y_train, X_test, y_test.
+               Returns None if any file is missing or loading fails.
+    """
+    files_to_load = {
+        'X_train': 'X_train.npy',
+        'y_train': 'y_train.npy',
+        'X_test': 'X_test.npy',
+        'y_test': 'y_test.npy'
+    }
+    data = {}
+
+    # Check if data directory exists
+    if not os.path.exists(data_dir):
+        print(f"Error: Data directory '{data_dir}' not found.")
+        return None
+
+    # Load each required file
+    for key, filename in files_to_load.items():
+        file_path = os.path.join(data_dir, filename)
+        if not os.path.isfile(file_path):
+            print(f"Error: Data file '{file_path}' not found.")
+            return None
+        try:
+            data[key] = np.load(file_path)
+            print(f"Loaded '{file_path}' successfully.")
+        except Exception as e:
+            print(f"Error loading data file '{file_path}': {e}")
+            return None
+
+    return data['X_train'], data['y_train'], data['X_test'], data['y_test']
+
+
+# Added save_model function
+def save_model(X_train, y_train, k, filename="manual_knn_model.joblib"):
+    """
+    Saves the components needed for the manual KNN model (training data and k)
+    to a file using joblib. In this implementation, the 'model' consists
+    of the training data and the value of k, as prediction requires them directly.
+
+    Args:
+        X_train (np.ndarray): Training data features.
+        y_train (np.ndarray): Training data labels.
+        k (int): The number of neighbors used.
+        filename (str): The path to save the model file.
+    """
+    # The 'model' for this KNN implementation is the training data and k
+    model_components = {
+        'X_train': X_train,
+        'y_train': y_train,
+        'k': k
+    }
+    try:
+        # Ensure the directory exists if filename includes a path
+        save_dir = os.path.dirname(filename)
+        if save_dir and not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+            print(f"Created directory: {save_dir}")
+
+        joblib.dump(model_components, filename)
+        print(f"Model components saved successfully to {filename}")
+    except Exception as e:
+        print(f"Error saving model components: {e}")
+
+
+def main():
+    """
+    Main function to load data, run manual KNN, evaluate accuracy, and save model components.
+    """
+    # Define the directory containing the data
+    data_dir = 'data'
+    # Set the number of neighbors
+    k = 5
+    # Define the filename for the saved model components
+    model_filename = "models/manual_knn_model.joblib" # Changed filename
+
+    # Load the data
+    loaded_data = load_data(data_dir)
+    if loaded_data is None:
+        return # Exit if data loading failed
+    X_train, y_train, X_test, y_test = loaded_data
+
+    # --- Save the model components after loading ---
+    # For this KNN, saving the training data and k allows reusing them later.
+    print(f"\nSaving model components (X_train, y_train, k={k})...")
+    save_model(X_train, y_train, k, model_filename)
+    # ---------------------------------------------------------
+
+    # Make predictions on the test set using the manual KNN implementation
+    predictions = []
+    print(f"\nMaking predictions using manual KNN (k={k})...")
+    for i in range(len(X_test)):
+        # Pass the loaded X_train, y_train, and k to the prediction function
+        prediction = predict_classification(X_train, y_train, X_test[i], k)
+        predictions.append(prediction)
+        # Optional: Print progress
+        if (i + 1) % 10 == 0 or (i + 1) == len(X_test):
+             print(f"Predicted {i+1}/{len(X_test)} instances.")
+
+    # Calculate the accuracy of the predictions
+    accuracy = calculate_accuracy(y_test, predictions)
+    print(f"\nManual KNN model accuracy on the test set: {accuracy:.4f}")
 
 if __name__ == "__main__":
-    # Example: load real data and evaluate
-    DATA_PATH = '/Users/ahmedelghazi/Desktop/ML/Proj/dataset/all_conditions.csv'
-    X, y = load_and_clean(DATA_PATH)
-    X_train, X_test, y_train, y_test = split_data(X, y)
-
-    print("Data has been split")
-    
-    # Train a basic KNN
-    knn = KNNClassifier(k=3)
-    knn.fit(X_train, y_train)
-    y_pred = knn.predict(X_test)
-    acc = np.mean(y_pred == y_test)
-    print(f"Custom KNN (k=3) accuracy: {acc:.4f}")
-
-    # Train a bagged KNN ensemble
-    bag_knn = BaggingKNN(k=3, n_estimators=5, sample_fraction=1.0, random_state=42)
-    bag_knn.fit(X_train, y_train)
-    y_pred_bag = bag_knn.predict(X_test)
-    acc_bag = np.mean(y_pred_bag == y_test)
-    print(f"Bagged KNN (5 estimators) accuracy: {acc_bag:.4f}")
+    main()
