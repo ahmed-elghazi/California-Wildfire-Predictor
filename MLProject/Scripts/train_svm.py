@@ -5,7 +5,7 @@ from sklearn.svm import SVC
 X_train = np.load('data/X_train.npy')
 y_train = np.load('data/y_train.npy')
 
-svm = SVC(kernel='rbf', C=1.0, random_state=42, class_weight='balanced')
+svm = SVC(kernel='rbf', C=1.0, random_state=42, class_weight='balanced', probability=True)
 # The class_weight parameter is set to 'balanced' to handle class imbalance
 # in the dataset. This will automatically adjust the weights inversely proportional to class frequencies
 # The kernel is set to 'rbf' (Radial Basis Function) which is a common choice for SVMs
