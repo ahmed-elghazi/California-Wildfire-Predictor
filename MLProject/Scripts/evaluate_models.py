@@ -19,11 +19,11 @@ model_files = {
     # "Perceptron": "Models/saved_model_perceptron.joblib",
     # "Boosted Logistic Regression": "Models/saved_model_boost_logistic.joblib",
     # "Boosted Perceptron": "Models/saved_model_boost_perceptron.joblib",
-    "adaboost": "models/Adaboost_model.joblib",
-    "bagged trees": "models/bagging_tree_model.joblib",
-    "normal tree": "models/manual_decision_tree_model.joblib",
-    "KNN": "models/manual_knn_model.joblib",
-    "bagged knn": "models/bagging_knn_model.joblib",
+    "adaboost": "models/adaboost_tree.joblib",
+    #"bagged trees": "models/bagging_tree_model.joblib",
+    "normal tree": "models/decision_tree_model.joblib",
+    "KNN": "models/knn_model.joblib",
+    "bagged knn": "models/saved_model_bagging_knn.joblib",
 
 }
 

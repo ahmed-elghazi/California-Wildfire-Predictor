@@ -15,8 +15,16 @@ numeric_cols = [
     'Avg Vap Pres (mBars)', 'Max Air Temp (F)', 'Min Air Temp (F)',
     'Avg Air Temp (F)', 'Max Rel Hum (%)', 'Min Rel Hum (%)',
     'Avg Rel Hum (%)', 'Dew Point (F)', 'Avg Wind Speed (mph)',
-    'Wind Run (miles)', 'Avg Soil Temp (F)'
+    'Wind Run (miles)', 'Avg Soil Temp (F)', 'Day', 'Month', 'Year'
 ]
+
+df['Date'] = pd.to_datetime(df['Date'], infer_datetime_format=True, errors='coerce')
+df['Day'] = df['Date'].dt.day
+df['Month'] = df['Date'].dt.month
+df['Year'] = df['Date'].dt.year
+
+target = df.pop('Target') # Move 'Target' to the end of the DataFrame
+df['Target'] = target # Ensure 'Target' is the last column
 
 # 3. Use the preprocessing and splitter class
 splitter = DataPreprocessorAndSplitter(
@@ -34,7 +42,6 @@ undersample = RandomUnderSampler(random_state=42)
 X_train_resampled, y_train_resampled = undersample.fit_resample(X_train, y_train)
 
 # Optional: Print to verify
-import numpy as np
 print("Original train distribution:", np.bincount(y_train))
 print("Resampled train distribution:", np.bincount(y_train_resampled))
 
