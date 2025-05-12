@@ -13,18 +13,22 @@ y_val = np.load('data/y_val.npy')
 
 # List of models and their file paths
 model_files = {
-    # "Feedforward Neural Net (FFN)": "Models/saved_model_ffn.joblib",
-    # "Support Vector Machine (SVM)": "Models/saved_model_svm.joblib",
-    # "Logistic Regression": "Models/saved_model_logistic.joblib",
-    # "Perceptron": "Models/saved_model_perceptron.joblib",
-    # "Boosted Logistic Regression": "Models/saved_model_boost_logistic.joblib",
-    # "Boosted Perceptron": "Models/saved_model_boost_perceptron.joblib",
-    "adaboost": "models/adaboost_tree.joblib",
-    #"bagged trees": "models/bagging_tree_model.joblib",
-    "normal tree": "models/decision_tree_model.joblib",
-    "KNN": "models/knn_model.joblib",
-    "bagged knn": "models/saved_model_bagging_knn.joblib",
-
+    "Feedforward Neural Net (FFN)": "Models/saved_model_ffn.joblib",
+    "Support Vector Machine (SVM)": "Models/saved_model_svm.joblib",
+    "Logistic Regression": "Models/saved_model_logistic.joblib",
+    "Perceptron": "Models/saved_model_perceptron.joblib",
+    "Boosted Logistic Regression": "Models/saved_model_boost_logistic.joblib",
+    "Boosted Perceptron": "Models/saved_model_boost_perceptron.joblib",
+    "adaboost": "models/my_custom_adaboost.joblib",
+    "random forest": "models/my_custom_randomforest.joblib",
+    "normal tree": "models/my_custom_tree.joblib",
+    "KNN": "models/my_custom_knn.joblib",
+    "bagged knn": "models/my_custom_bagging_knn.joblib",
+    "SKadaboost": "models/SKadaboost.joblib",
+    "SKforest": "models/SKforest_model.joblib",
+    "SKtree": "models/SKtree_model.joblib",
+    "SKknn": "models/SKknn.joblib",
+    "SKbag": "models/SknnBag.joblib",
 }
 
 
